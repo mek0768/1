@@ -1,17 +1,27 @@
 from flask import Flask, request, jsonify
 import os
 import requests
-from requests.auth import HTTPBasicAuth
+from dotenv import load_dotenv
+from requests_oauthlib import OAuth1
+
+load_dotenv()
 
 app = Flask(__name__)
 
+CONSUMER_KEY = os.getenv("TWITTER_CONSUMER_KEY")
+CONSUMER_SECRET = os.getenv("TWITTER_CONSUMER_SECRET")
+ACCESS_TOKEN = os.getenv("TWITTER_ACCESS_TOKEN")
+ACCESS_TOKEN_SECRET = os.getenv("TWITTER_ACCESS_TOKEN_SECRET")
+
+auth = OAuth1(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+
 @app.route("/")
 def home():
-    return "API is running. Use POST /tweet-reply to send a reply."
+    return "✅ API is running. Use POST /tweet-reply to send a reply."
 
 @app.route("/tweet-reply", methods=["POST"])
 def tweet_reply():
-    data = request.json
+    data = request.get_json()
     tweet_id = data.get("tweet_id")
     text = data.get("text")
 
@@ -25,11 +35,6 @@ def tweet_reply():
         }
     }
 
-    auth = HTTPBasicAuth(
-        os.environ.get("API_KEY"),
-        os.environ.get("API_KEY_SECRET")
-    )
-
     try:
         response = requests.post(
             "https://api.twitter.com/2/tweets",
@@ -40,6 +45,5 @@ def tweet_reply():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# ✅ BU KISIM ÇOK ÖNEMLİ:
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=5000)
